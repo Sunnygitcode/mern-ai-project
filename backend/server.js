@@ -15,39 +15,40 @@ app.use(express.json());
 // API routes
 app.use("/api/chat", chatRoutes);
 
-// Health check
+// Health check endpoint (Render zero-downtime ke liye zaroori hai)
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
-// Read config
-const PORT = process.env.PORT || 5000;
+// Port and DB configuration (Render automatically assigns PORT)
+const PORT = process.env.PORT || 10000;
 const MONGO_URI = process.env.MONGO_URI;
 
 if (!MONGO_URI) {
-  console.error("MONGO_URI not set in .env");
+  console.error("❌ ERROR: MONGO_URI is missing in Environment Variables!");
   process.exit(1);
 }
 
+// Database Connection and Server Startup
 async function startServer() {
   try {
-    // ✅ FIX: No deprecated options here
+    console.log("Connecting to MongoDB...");
     await mongoose.connect(MONGO_URI);
+    console.log("✅ MongoDB Connected Successfully");
 
-    console.log("MongoDB Connected");
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+    // Listening on '0.0.0.0' is required for Render hosting
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 Server is live and running on port ${PORT}`);
     });
 
     mongoose.connection.on("error", (err) => {
-      console.error("Mongoose connection error:", err);
+      console.error("⚠️ Mongoose connection error:", err);
     });
 
     mongoose.connection.on("disconnected", () => {
-      console.warn("Mongoose disconnected");
+      console.warn("⚠️ Mongoose disconnected");
     });
 
   } catch (err) {
-    console.error("Failed to connect to MongoDB:", err);
+    console.error("❌ Failed to connect to MongoDB during startup:", err.message);
     process.exit(1);
   }
 }
