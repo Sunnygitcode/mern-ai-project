@@ -8,17 +8,28 @@ const chatRoutes = require("./routes/chat");
 
 const app = express();
 
+// CORS Configuration
+app.use(cors({
+  origin: [
+    "https://sannirajput.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 
 // API routes
 app.use("/api/chat", chatRoutes);
 
-// Health check endpoint (Render zero-downtime ke liye zaroori hai)
-app.get("/health", (req, res) => res.json({ status: "ok" }));
+// Health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
 
-// Port and DB configuration (Render automatically assigns PORT)
+// Port and DB configuration
 const PORT = process.env.PORT || 10000;
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -31,13 +42,10 @@ if (!MONGO_URI) {
 async function startServer() {
   try {
     console.log("Connecting to MongoDB...");
-    await mongoose.connect(MONGO_URI);
-    console.log("✅ MongoDB Connected Successfully");
 
-    // Listening on '0.0.0.0' is required for Render hosting
-    app.listen(PORT, '0.0.0.0', () => {
-      console.log(`🚀 Server is live and running on port ${PORT}`);
-    });
+    await mongoose.connect(MONGO_URI);
+
+    console.log("✅ MongoDB Connected Successfully");
 
     mongoose.connection.on("error", (err) => {
       console.error("⚠️ Mongoose connection error:", err);
@@ -45,6 +53,11 @@ async function startServer() {
 
     mongoose.connection.on("disconnected", () => {
       console.warn("⚠️ Mongoose disconnected");
+    });
+
+    // Start server
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`🚀 Server is live and running on port ${PORT}`);
     });
 
   } catch (err) {
