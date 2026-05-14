@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useMemo } from "react";
 import axios from "axios";
 import { FaRobot, FaPaperPlane, FaEllipsisV } from "react-icons/fa";
@@ -37,7 +38,7 @@ function ChatBox() {
     detectRetina: true,
   }), []);
 
-  // Auto-scroll to latest message (scrolls page if needed). Remove this effect if you want no auto-scrolling.
+  // Auto-scroll to latest message
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
@@ -51,7 +52,12 @@ function ChatBox() {
     setLoading(true);
 
     try {
-      const res = await axios.post("http://localhost:5000/api/chat", { message: userMessage.text });
+      const API_URL = "https://sannirajput.onrender.com/api/chat";
+
+const res = await axios.post(API_URL, {
+  message: userMessage.text,
+});
+    //   const res = await axios.post("onrender.com", { message: userMessage.text });
       const botMessage = { sender: "bot", text: res.data.reply || "No reply", time: new Date().toISOString() };
       setMessages((p) => [...p, botMessage]);
     } catch (err) {
@@ -120,7 +126,7 @@ function ChatBox() {
                 </div>
               </div>
 
-              {/* Messages (not scrollable; card grows with messages) */}
+              {/* Messages */}
               <div className="card-body p-3" style={{ background: "transparent" }}>
                 <div className="d-flex flex-column gap-3">
                   {messages.length === 0 && (
@@ -181,15 +187,8 @@ function ChatBox() {
                       style={{ resize: "none", background: "rgba(250,250,255,0.9)" }}
                     />
                   </div>
-
-                  <button
-                    type="submit"
-                    className="btn btn-primary d-flex align-items-center justify-content-center"
-                    style={{ width: 48, height: 48, borderRadius: 12 }}
-                    disabled={loading || !message.trim()}
-                    aria-label="send"
-                  >
-                    <FaPaperPlane />
+                  <button type="submit" className="btn btn-primary d-flex align-items-center justify-content-center shadow-sm" disabled={loading} style={{ width: 48, height: 48, borderRadius: 12 }}>
+                    <FaPaperPlane size={16} />
                   </button>
                 </form>
               </div>
